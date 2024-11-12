@@ -42,7 +42,6 @@ export default class News extends Component {
         this.props.setProgress(10)
         this.setState({ loading: true })
         let data = await fetch(url);
-        this.props.setProgress(20)
         let parsedData = await data.json();
         console.log(parsedData);
         this.setState({
@@ -103,7 +102,8 @@ export default class News extends Component {
         const filteredArticles = this.state.articles.filter(article => !article.url.includes("removed.com"));
         return (
             <div className='container my-3'>
-                <h1 className='text-center' style={{ margin: '35px 0px' }}>Phoenix Pulse - Top {this.capitalizeFirstLetter(this.props.category)} Headlines</h1>
+                <h1 className='text-center' style={{ margin: '35px 0px', color: '#FFD700', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}
+                >Phoenix Pulse - Top {this.capitalizeFirstLetter(this.props.category)} Headlines</h1>
                 {this.state.loading && <Spinner />}
                 <InfiniteScroll
                     style={{ overflowX: 'hidden' }}
@@ -119,7 +119,7 @@ export default class News extends Component {
                             {filteredArticles.map((elements, index) => {
                                 return (
                                     <div className='col-md-4' key={`${elements.url}-${index}`} >
-                                        <NewsItem title={elements.title ? elements.title.slice(0, 150) : " "} description={elements.description ? elements.description : " "} imageUrl={elements.urlToImage} newsUrl={elements.url} author={elements.author} date={elements.publishedAt} source={elements.source.name} />
+                                        <NewsItem title={elements.title ? elements.title.slice(0, 200) : " "} description={elements.description ? elements.description : " "} imageUrl={elements.urlToImage} newsUrl={elements.url} author={elements.author} date={elements.publishedAt} source={elements.source.name} />
                                     </div>
                                 )
                             })}
