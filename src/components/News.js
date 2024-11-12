@@ -1,29 +1,26 @@
-import React, { Component } from 'react'
-import NewsItem from './NewsItem'
-import PropTypes from 'prop-types'
-import InfiniteScroll from 'react-infinite-scroll-component'
-import Spinner from './Spinner'
+import React, { Component } from 'react';
+import NewsItem from './NewsItem';
+import PropTypes from 'prop-types';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import Spinner from './Spinner';
 
 export default class News extends Component {
-    // API key defined as a class property
-    static API_KEY = '4991a0afe5e94f8ea28eb60875ac3b80';
-
     static defaultProps = {
         country: 'us',
-        pageSize: 15,
+        pageSize: 10,
         category: 'general'
-    }
+    };
 
     static propTypes = {
         country: PropTypes.string,
         pageSize: PropTypes.number,
         category: PropTypes.string
-    }
+    };
 
     capitalizeFirstLetter = (string) => {
-        if (string.length === 0) return ""; 
+        if (string.length === 0) return ""; // Return empty string if input is empty
         return string.charAt(0).toUpperCase() + string.slice(1);
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -32,8 +29,8 @@ export default class News extends Component {
             loading: true,
             page: 1,
             totalArticles: 0
-        }
-        document.title = `Phoenix Pulse-${this.capitalizeFirstLetter(this.props.category)}`
+        };
+        document.title = `Phoenix Pulse - ${this.capitalizeFirstLetter(this.props.category)}`;
     }
 
     async componentDidMount() {
@@ -41,76 +38,53 @@ export default class News extends Component {
     }
 
     updateNews = async () => {
-        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${News.API_KEY}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
-        this.props.setProgress(10)
-        this.setState({ loading: true })
-        try {
-            let data = await fetch(url);
-            let parsedData = await data.json();
-            if (parsedData.status === 'error') {
-                console.error('API Error:', parsedData.message);
-                this.setState({ loading: false });
-                return;
-            }
-            this.setState({
-                articles: parsedData.articles,
-                totalArticles: parsedData.totalResults,
-                loading: false
-            });
-        } catch (error) {
-            console.error('Fetch Error:', error);
-            this.setState({ loading: false });
-        }
-        this.props.setProgress(100)
-    }
+        const { country, category, pageSize } = this.props;
+        let url = `https://gnews.io/api/v4/top-headlines?country=${country}&category=${category}&lang=en&max=${pageSize}&apikey=c08d449b54ac53290dfea215e6e1a112`;
 
-    handlePreviousClick = async () => {
-        this.setState({ page: this.state.page - 1 }, this.updateNews);
-    }
+        this.props.setProgress(10);
+        this.setState({ loading: true });
 
-    handleNextClick = async () => {
-        this.setState({ page: this.state.page + 1 }, this.updateNews);
-    }
+        let data = await fetch(url);
+        let parsedData = await data.json();
+        console.log(parsedData);
+
+        this.setState({
+            articles: parsedData.articles,
+            totalArticles: parsedData.totalArticles,
+            loading: false
+        });
+
+        this.props.setProgress(100);
+    };
 
     fetchMoreData = async () => {
-        const nextPage = this.state.page + 1;
-        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${News.API_KEY}&page=${nextPage}&pageSize=${this.props.pageSize}`;
-        
-        try {
-            let data = await fetch(url);
-            let parsedData = await data.json();
-            if (parsedData.status === 'error') {
-                console.error('API Error:', parsedData.message);
-                return;
-            }
-            this.setState(prevState => ({
-                articles: [...prevState.articles, ...parsedData.articles],
-                totalArticles: parsedData.totalResults,
-                page: nextPage,
-                loading: false
-            }));
-        } catch (error) {
-            console.error('Fetch Error:', error);
-        }
-    }
+        this.setState({ page: this.state.page + 1 });
+
+        const { country, category, pageSize } = this.props;
+        let url = `https://gnews.io/api/v4/top-headlines?country=${country}&category=${category}&lang=en&max=${pageSize}&apikey=c08d449b54ac53290dfea215e6e1a112&page=${this.state.page}`;
+
+        let data = await fetch(url);
+        let parsedData = await data.json();
+        console.log(parsedData);
+
+        this.setState({
+            articles: this.state.articles.concat(parsedData.articles),
+            totalArticles: parsedData.totalArticles,
+            loading: false
+        });
+    };
 
     render() {
-        const filteredArticles = this.state.articles.filter(article => 
-            article && article.url && !article.url.includes("removed.com")
-        );
+        const filteredArticles = this.state.articles.filter(article => !article.url.includes("removed.com"));
 
         return (
             <div className='container my-3'>
-                <h1 className='text-center' style={{ 
-                    margin: '35px 0px', 
-                    color: '#FFD700', 
-                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' 
-                }}>
+                <h1 className='text-center' style={{ margin: '35px 0px', color: '#FFD700', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                     Phoenix Pulse - Top {this.capitalizeFirstLetter(this.props.category)} Headlines
                 </h1>
-                
+
                 {this.state.loading && <Spinner />}
-                
+
                 <InfiniteScroll
                     style={{ overflowX: 'hidden' }}
                     dataLength={this.state.articles.length}
@@ -122,14 +96,14 @@ export default class News extends Component {
                         <div className='row'>
                             {filteredArticles.map((element, index) => (
                                 <div className='col-md-4' key={`${element.url}-${index}`}>
-                                    <NewsItem 
-                                        title={element.title?.slice(0, 200) || " "}
+                                    <NewsItem
+                                        title={element.title ? element.title.slice(0, 200) : " "}
                                         description={element.description || " "}
-                                        imageUrl={element.urlToImage}
+                                        imageUrl={element.image}
                                         newsUrl={element.url}
                                         author={element.author}
                                         date={element.publishedAt}
-                                        source={element.source?.name}
+                                        source={element.source.name}
                                     />
                                 </div>
                             ))}
@@ -137,6 +111,6 @@ export default class News extends Component {
                     </div>
                 </InfiniteScroll>
             </div>
-        )
+        );
     }
 }
