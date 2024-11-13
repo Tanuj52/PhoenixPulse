@@ -79,7 +79,7 @@ export default class News extends Component {
 
         return (
             <div className='container my-3'>
-                <h1 className='text-center' style={{ margin: '35px 0px', color: '#FFD700', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
+                <h1 className='text-center' style={{ margin: '35px 0px',marginTop:'90px', color: '#FFD700', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                     Phoenix Pulse - Top {this.capitalizeFirstLetter(this.props.category)} Headlines
                 </h1>
 
